@@ -8,6 +8,13 @@
  * Adapted by LeRoy Miller, 2016
  */
 
+#include <Wire.h>
+#include <Adafruit_MLX90614.h>
+
+Adafruit_MLX90614 mlx = Adafruit_MLX90614(); //I think I can just use one device name here, but it's something that needs to be tested
+
+#define units 1 //1=Fahrenheit,  0=Celius
+
 //Functions:
 
 //rightForward(speed)
@@ -32,6 +39,8 @@ int pwmL = 175;
 
 int rightSensor;
 int leftSensor;
+int rightAmbient; //ambient temperature of sensors
+int leftAmbient;
 
 //Variables for Mux. (multiplexer)
 /* Special cases - 2 Mux boards are used, one is used for SDA, and
@@ -69,25 +78,54 @@ void setup()   {
 
 void loop()                     
 {
+readRightSensor();
+readLeftSensor();
+
+//Compare Ambient tempature to reading tempature if changed do something
+
+if (rightAmbient != rightSensor || leftAmbient != leftSensor) {
+
+    if (rightSensor > leftSensor) { leftForward(pwmL); }
+    if (rightSensor < leftSensor) { rightForward(pwmR); }
+    if (rightSensor == leftSensor) { leftForward(pwmL); rightForward(pwmR); }
+}
 
 }
 
 void readRightSensor() {
   digitalWrite(s0, LOW);
   //because S1, S2, S3 are already set LOW we don't need to set again
-  //rightSensor = readSensor();
+  rightSensor = readSensor();
+  rightAmbient = readAmbient();
   }
 
 void readLeftSensor() {
   digitalWrite(s0, HIGH);
   //because s1, s2, s3 are already set LOW we don't need to set again
-//  leftSensor = readSensor();
+  leftSensor = readSensor();
+  leftAmbient = readAmbient();
 }
 
-void readSensor() {
+int readSensor() {
+  
   /* Code to read the Thermal sensor goes here 
    *  and should return a value back to the calling function
    */
+   
+   int temp;
+   if (units) {temp = mlx.readObjectTempF();} else {temp = mlx.readObjectTempC();} 
+   return temp;
+   
+}
+
+int readAmbient() {
+  
+  // Code to read the Thermal sensor Ambient Tempature
+  
+  int temp;
+  if (units) {temp = mlx.readAmbientTempF();} else {temp = mlx.readAmbientTempC();}
+  return temp;
+  
 }
 
 void rightForward(int speedOfRotate) {
