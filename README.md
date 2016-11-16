@@ -4,7 +4,7 @@ The idea is that the robot is attracted to heat, and will move toward it.
 The setup is to have the MLX90614 sensors set at an angle from each other, 
 IF one sees more heat than the other, the robot will turn in that direction, and will attempt to move to the source.
 
-The ML90614 sensors were provided by IC Station for this experiment.
+The MLX90614 sensors were provided by IC Station for this experiment.
 http://www.icstation.com/mlx90614esf-human-body-infrared-temperature-sensor-contact-temperature-module-p-9911.html
 
 The sensors are I2C, and a MUX will be used to switch between the two sensors
