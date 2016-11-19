@@ -1,4 +1,7 @@
-# Snake Vision Robot
+# Snake Vision Robot testing branch
+
+NOTE: ALL MOTOR CONTROL has been removed from this branch, this sketch is used to just test the sensors, and see the logic in the serial monitor 
+It was also used to add the sensor calibrate function, and make sure having two of the MLX90614 sensors would not cause problems.
 
 The idea is that the robot is attracted to heat, and will move toward it.
 The setup is to have the MLX90614 sensors set at an angle from each other, 
