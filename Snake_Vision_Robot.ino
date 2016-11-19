@@ -21,6 +21,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses>
  */
 
+
+// **** THIS IS FOR TESTING THE SENSORS TO MAKE THE ROBOT SWITCH TO MASTER BRANCH ****
+
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
 
@@ -28,25 +31,6 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614(); //I think I can just use one device
 
 #define units 1 //1=Fahrenheit,  0=Celius
 
-//Functions:
-
-//rightForward(speed)
-//rightBackward(speed)
-//leftForward(speed)
-//leftBackward(speed)
-//stop()
-//readRightSensor() - set the mux to read the sensor connected to C0
-//readLeftSensor() - set the mux to read the sensor connected to C1
-//readSensor() - returns value of current readings
-
-
-//Setup variables for motors
-#define leftMotorPin1 3 //Left IA2   PWM PIN
-#define leftMotorPin2   5 //Left IB2 Direction PIN 
-#define rightMotorPin1  6 //Right IA1 PWM PIN
-#define rightMotorPin2  9 //Right IB1 Direction PIN
-int pwmR = 175;
-int pwmL = 175;
 
 //Setup variables for themal sensors
 
@@ -78,15 +62,10 @@ void setup()   {
    digitalWrite(s1, LOW);
    digitalWrite(s2, LOW);
    digitalWrite(s3, LOW);
- pinMode(leftMotorPin1, OUTPUT); 
-  pinMode(leftMotorPin2, OUTPUT);  
-  pinMode(rightMotorPin1, OUTPUT);
-  pinMode(rightMotorPin2, OUTPUT);
- stop();
- delay(3000); //Need delay here for everything to catch up
- //leftForward(175);// added for testing encoders reason
- //rightForward(170);//added for testing encoders reason
-
+ mlx.begin();
+ 
+ //delay(1000); //Need delay here for everything to catch up
+ 
 }
 
 void loop()                     
@@ -94,15 +73,27 @@ void loop()
 readRightSensor();
 readLeftSensor();
 
+delay (1000);
 //Compare Ambient tempature to reading tempature if changed do something
+Serial.print ("Right Ambient Temp: ");
+Serial.print(rightAmbient);
+Serial.print(" F Right Temp: ");
+Serial.print(rightSensor);
+Serial.println(" F");
+Serial.print("Left Ambient Temp: ");
+Serial.print(leftAmbient);
+Serial.print(" F Left Temp: ");
+Serial.print(leftSensor);
+Serial.println(" F");
 
 if (rightAmbient != rightSensor || leftAmbient != leftSensor) {
 
-    if (rightSensor > leftSensor) { leftForward(pwmL); }
-    if (rightSensor < leftSensor) { rightForward(pwmR); }
-    if (rightSensor == leftSensor) { leftForward(pwmL); rightForward(pwmR); }
+    if (rightSensor > leftSensor) { Serial.println("Right High left Motor on"); }
+    if (rightSensor < leftSensor) { Serial.println("Left High right Motor on"); }
+    if (rightSensor == leftSensor) { Serial.println("Both Equal - Drive Forward"); }
+    //probably need to see if both ambients are the same, and stop robot
 }
-
+ else {Serial.println("Stop Motors");}
 }
 
 void readRightSensor() {
@@ -139,33 +130,6 @@ int readAmbient() {
   if (units) {temp = mlx.readAmbientTempF();} else {temp = mlx.readAmbientTempC();}
   return temp;
   
-}
-
-void rightForward(int speedOfRotate) {
-  digitalWrite(rightMotorPin2, LOW);
-  analogWrite(rightMotorPin1, speedOfRotate);
-}
-
-void rightBackward(int speedOfRotate) {
-  digitalWrite(rightMotorPin2, HIGH);
-  analogWrite(rightMotorPin1, speedOfRotate);
-}
-
-void leftForward(int speedOfRotate) {
-  digitalWrite(leftMotorPin2, LOW);
-  analogWrite(leftMotorPin1, speedOfRotate);
-}
-
-void leftBackward(int speedOfRotate) {
-  digitalWrite(leftMotorPin2, HIGH);
-  analogWrite(leftMotorPin1, speedOfRotate);
-}
-
-void stop() {
-  digitalWrite(leftMotorPin1, LOW);
-  digitalWrite(leftMotorPin2, LOW);
-  digitalWrite(rightMotorPin1, LOW);
-  digitalWrite(rightMotorPin2, LOW);
 }
 
 
