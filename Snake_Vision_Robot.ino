@@ -38,6 +38,8 @@ int rightSensor;
 int leftSensor;
 int rightAmbient; //ambient temperature of sensors
 int leftAmbient;
+int rightCalibrate;
+int leftCalibrate;
 
 //Variables for Mux. (multiplexer)
 /* Special cases - 2 Mux boards are used, one is used for SDA, and
@@ -64,16 +66,19 @@ void setup()   {
    digitalWrite(s3, LOW);
  mlx.begin();
  
- //delay(1000); //Need delay here for everything to catch up
+delay(1000); //Need delay here for everything to catch up
+
+calibrateSensors();
  
 }
 
 void loop()                     
 {
+  delay(1000);
 readRightSensor();
 readLeftSensor();
 
-delay (1000);
+
 //Compare Ambient tempature to reading tempature if changed do something
 Serial.print ("Right Ambient Temp: ");
 Serial.print(rightAmbient);
@@ -99,14 +104,14 @@ if (rightAmbient != rightSensor || leftAmbient != leftSensor) {
 void readRightSensor() {
   digitalWrite(s0, LOW);
   //because S1, S2, S3 are already set LOW we don't need to set again
-  rightSensor = readSensor();
+  rightSensor = readSensor() + rightCalibrate;
   rightAmbient = readAmbient();
   }
 
 void readLeftSensor() {
   digitalWrite(s0, HIGH);
   //because s1, s2, s3 are already set LOW we don't need to set again
-  leftSensor = readSensor();
+  leftSensor = readSensor() + leftCalibrate;
   leftAmbient = readAmbient();
 }
 
@@ -132,4 +137,38 @@ int readAmbient() {
   
 }
 
+void calibrateSensors() {
+  int avg1 = 0;
+  int avg2 = 0;
+  
+  Serial.print("Calibrate Sensors.");
+  
+  for (int i=0; i<=100; i++) {
+    Serial.print(".");
+    readRightSensor();
+  avg1 = avg1 + rightSensor;
+  avg2 = avg2 + rightAmbient;  
+  }
+  avg1 = avg1 / 100;
+  avg2 = avg2 / 100;
+  
+  rightCalibrate = avg2 - avg1;
+  
+  avg1 = 0;
+  avg2 = 0;
+  for (int i=0; i<=100; i++) {
+    Serial.print(".");
+    readLeftSensor();
+    avg1 = avg1 + leftSensor;
+    avg2 = avg2 + leftAmbient;
+  }
+  avg1 = avg1 / 100;
+  avg2 = avg2 / 100;
+  leftCalibrate = avg2 - avg1;
+  Serial.println("");
+  Serial.print("Right Calibrate: ");
+  Serial.print(rightCalibrate);
+  Serial.print(" Left Calibrate: ");
+  Serial.println(leftCalibrate);
+}
 
