@@ -70,9 +70,12 @@ int leftCalibrate;
 #define s2  2
 #define s3 13
 
+#define LED 12
+
 void setup()   {  
    Serial.begin(9600);
    mlx.begin();
+   pinMode(LED, OUTPUT);
    pinMode(s0, OUTPUT);
    pinMode(s1, OUTPUT);
    pinMode(s2, OUTPUT);
@@ -86,8 +89,10 @@ void setup()   {
   pinMode(rightMotorPin1, OUTPUT);
   pinMode(rightMotorPin2, OUTPUT);
   stop();
+  delay(5000);
   calibrateSensors(); 
- delay(2000); //Need delay here for everything to catch up
+ delay(5000); 
+ digitalWrite(LED, HIGH); //When LED comes on ROBOT is Ready to move.
  
 }
 
@@ -98,7 +103,7 @@ readLeftSensor();
 
 //Compare Ambient temperature to reading temperature if changed do something
 
-if (rightAmbient != rightSensor || leftAmbient != leftSensor) {
+if (rightSensor - rightAmbient >= 2 || leftSensor - leftAmbient >= 2) {
 
     if (rightSensor > leftSensor) { leftForward(pwmL); }
     if (rightSensor < leftSensor) { rightForward(pwmR); }
