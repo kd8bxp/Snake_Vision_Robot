@@ -45,15 +45,17 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614(); //I think I can just use one device
 #define leftMotorPin2   5 //Left IB2 Direction PIN 
 #define rightMotorPin1  6 //Right IA1 PWM PIN
 #define rightMotorPin2  9 //Right IB1 Direction PIN
-int pwmR = 175;
-int pwmL = 175;
+int pwmR = 100;
+int pwmL = 100;
 
-//Setup variables for themal sensors
+//Setup variables for temperature sensors
 
 int rightSensor;
 int leftSensor;
 int rightAmbient; //ambient temperature of sensors
 int leftAmbient;
+int rightCalibrate;
+int leftCalibrate;
 
 //Variables for Mux. (multiplexer)
 /* Special cases - 2 Mux boards are used, one is used for SDA, and
@@ -70,6 +72,7 @@ int leftAmbient;
 
 void setup()   {  
    Serial.begin(9600);
+   mlx.begin();
    pinMode(s0, OUTPUT);
    pinMode(s1, OUTPUT);
    pinMode(s2, OUTPUT);
@@ -78,15 +81,14 @@ void setup()   {
    digitalWrite(s1, LOW);
    digitalWrite(s2, LOW);
    digitalWrite(s3, LOW);
- pinMode(leftMotorPin1, OUTPUT); 
+  pinMode(leftMotorPin1, OUTPUT); 
   pinMode(leftMotorPin2, OUTPUT);  
   pinMode(rightMotorPin1, OUTPUT);
   pinMode(rightMotorPin2, OUTPUT);
- stop();
- delay(3000); //Need delay here for everything to catch up
- //leftForward(175);// added for testing encoders reason
- //rightForward(170);//added for testing encoders reason
-
+  stop();
+  calibrateSensors(); 
+ delay(2000); //Need delay here for everything to catch up
+ 
 }
 
 void loop()                     
@@ -94,28 +96,30 @@ void loop()
 readRightSensor();
 readLeftSensor();
 
-//Compare Ambient tempature to reading tempature if changed do something
+//Compare Ambient temperature to reading temperature if changed do something
 
 if (rightAmbient != rightSensor || leftAmbient != leftSensor) {
 
     if (rightSensor > leftSensor) { leftForward(pwmL); }
     if (rightSensor < leftSensor) { rightForward(pwmR); }
     if (rightSensor == leftSensor) { leftForward(pwmL); rightForward(pwmR); }
-}
+} else { stop(); }
+
+delay(50); //test code with small delay (may not be needed)
 
 }
 
 void readRightSensor() {
   digitalWrite(s0, LOW);
   //because S1, S2, S3 are already set LOW we don't need to set again
-  rightSensor = readSensor();
+  rightSensor = readSensor() + rightCalibrate;
   rightAmbient = readAmbient();
   }
 
 void readLeftSensor() {
   digitalWrite(s0, HIGH);
   //because s1, s2, s3 are already set LOW we don't need to set again
-  leftSensor = readSensor();
+  leftSensor = readSensor() + leftCalibrate;
   leftAmbient = readAmbient();
 }
 
@@ -168,4 +172,38 @@ void stop() {
   digitalWrite(rightMotorPin2, LOW);
 }
 
+void calibrateSensors() {
+  int avg1 = 0;
+  int avg2 = 0;
+  
+  Serial.print("Calibrate Sensors.");
+  
+  for (int i=0; i<=100; i++) {
+    Serial.print(".");
+    readRightSensor();
+  avg1 = avg1 + rightSensor;
+  avg2 = avg2 + rightAmbient;  
+  }
+  avg1 = avg1 / 100;
+  avg2 = avg2 / 100;
+  
+  rightCalibrate = avg2 - avg1;
+  
+  avg1 = 0;
+  avg2 = 0;
+  for (int i=0; i<=100; i++) {
+    Serial.print(".");
+    readLeftSensor();
+    avg1 = avg1 + leftSensor;
+    avg2 = avg2 + leftAmbient;
+  }
+  avg1 = avg1 / 100;
+  avg2 = avg2 / 100;
+  leftCalibrate = avg2 - avg1;
+  Serial.println("");
+  Serial.print("Right Calibrate: ");
+  Serial.print(rightCalibrate);
+  Serial.print(" Left Calibrate: ");
+  Serial.println(leftCalibrate);
+}
 
