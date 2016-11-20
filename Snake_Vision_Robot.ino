@@ -105,7 +105,7 @@ if (rightAmbient != rightSensor || leftAmbient != leftSensor) {
     if (rightSensor == leftSensor) { leftForward(pwmL); rightForward(pwmR); }
 } else { stop(); }
 
-delay(50); //test code with small delay (may not be needed)
+//delay(50); //test code with small delay (may not be needed)
 
 }
 
