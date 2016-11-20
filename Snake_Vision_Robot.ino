@@ -91,7 +91,20 @@ Serial.print(" F Left Temp: ");
 Serial.print(leftSensor);
 Serial.println(" F");
 
-if (rightAmbient != rightSensor || leftAmbient != leftSensor) {
+/*
+//Percentage added. *Not used
+int rightPercent = (rightAmbient - rightSensor) / 100;
+int leftPercent = (leftAmbient - leftSensor) / 100;
+
+Serial.print("Right Percent: ");
+Serial.println(rightPercent);
+Serial.print("Left Percent: ");
+Serial.println(leftPercent);
+
+//if (rightPercent != leftPercent) {
+*/
+
+if (rightSensor - rightAmbient >= 2 || leftSensor - leftAmbient >= 2) {
 
     if (rightSensor > leftSensor) { Serial.println("Right High left Motor on"); }
     if (rightSensor < leftSensor) { Serial.println("Left High right Motor on"); }
