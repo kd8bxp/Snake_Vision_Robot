@@ -24,8 +24,7 @@
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
 
-Adafruit_MLX90614 mlx = Adafruit_MLX90614(); //I think I can just use one device name here, but it's something that needs to be tested
-
+Adafruit_MLX90614 mlx = Adafruit_MLX90614(); 
 #define units 1 //1=Fahrenheit,  0=Celius
 
 //Functions:
@@ -41,12 +40,12 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614(); //I think I can just use one device
 
 
 //Setup variables for motors
-#define leftMotorPin1 3 //Left IA2   PWM PIN
+#define leftMotorPin1   3 //Left IA2   PWM PIN
 #define leftMotorPin2   5 //Left IB2 Direction PIN 
 #define rightMotorPin1  6 //Right IA1 PWM PIN
 #define rightMotorPin2  9 //Right IB1 Direction PIN
-int pwmR = 100;
-int pwmL = 100;
+#define pwmR  100 //smallest PWM value that will cause motor to spin
+#define pwmL  100
 
 //Setup variables for temperature sensors
 
@@ -56,6 +55,11 @@ int rightAmbient; //ambient temperature of sensors
 int leftAmbient;
 int rightCalibrate;
 int leftCalibrate;
+int aL;
+int sL;
+int aR;
+int sR;
+
 
 //Variables for Mux. (multiplexer)
 /* Special cases - 2 Mux boards are used, one is used for SDA, and
@@ -70,7 +74,13 @@ int leftCalibrate;
 #define s2  2
 #define s3 13
 
-#define LED 12
+//RED temperatures are higher than ambient, GREEN ambient temperature
+#define LED 12  //ready indicator (GREEN)
+#define RIGHTREDLED A0 
+#define RIGHTGREENLED A1
+#define LEFTREDLED A2
+#define LEFTGREENLED A3
+
 
 void setup()   {  
    Serial.begin(9600);
@@ -80,18 +90,26 @@ void setup()   {
    pinMode(s1, OUTPUT);
    pinMode(s2, OUTPUT);
    pinMode(s3, OUTPUT);
+   pinMode(RIGHTREDLED, OUTPUT);
+   pinMode(RIGHTGREENLED, OUTPUT);
+   pinMode(LEFTREDLED, OUTPUT);
+   pinMode(LEFTGREENLED, OUTPUT);
+   pinMode(leftMotorPin1, OUTPUT); 
+   pinMode(leftMotorPin2, OUTPUT);  
+   pinMode(rightMotorPin1, OUTPUT);
+   pinMode(rightMotorPin2, OUTPUT);
    digitalWrite(s0, LOW);
    digitalWrite(s1, LOW);
    digitalWrite(s2, LOW);
    digitalWrite(s3, LOW);
-  pinMode(leftMotorPin1, OUTPUT); 
-  pinMode(leftMotorPin2, OUTPUT);  
-  pinMode(rightMotorPin1, OUTPUT);
-  pinMode(rightMotorPin2, OUTPUT);
+   digitalWrite(RIGHTREDLED, LOW);
+   digitalWrite(RIGHTGREENLED, LOW);
+   digitalWrite(LEFTREDLED, LOW);
+   digitalWrite(LEFTGREENLED, LOW);
   stop();
-  delay(5000);
+  delay(5000); //delay before calibration - warning sensors are very senitive point them away from any type of heat source.
   calibrateSensors(); 
- delay(5000); 
+ delay(5000);  //another delay after calibration (a buzzer might go good here, warning that the bot is just about ready)
  digitalWrite(LED, HIGH); //When LED comes on ROBOT is Ready to move.
  
 }
@@ -101,14 +119,14 @@ void loop()
 readRightSensor();
 readLeftSensor();
 
-//Compare Ambient temperature to reading temperature if changed do something
-
-if (rightSensor - rightAmbient >= 2 || leftSensor - leftAmbient >= 2) {
-
-    if (rightSensor > leftSensor) { leftForward(pwmL); }
-    if (rightSensor < leftSensor) { rightForward(pwmR); }
-    if (rightSensor == leftSensor) { leftForward(pwmL); rightForward(pwmR); }
-} else { stop(); }
+aL = map(leftAmbient, -40, leftAmbient, 0.0, pwmL);
+sL = map(leftSensor, leftAmbient, leftSensor, pwmL, 0.0);
+aR = map(rightAmbient, -40, rightAmbient, 0.0, pwmR);
+sR = map(rightSensor, rightAmbient, rightSensor, pwmR, 0.0);
+if (leftAmbient >= leftSensor) {sL = 100;}
+if (rightAmbient >= rightSensor) {sR = 100;}
+rightForward(aL - sL);
+leftForward(aR - sR);
 
 //delay(50); //test code with small delay (may not be needed)
 
@@ -119,6 +137,12 @@ void readRightSensor() {
   //because S1, S2, S3 are already set LOW we don't need to set again
   rightSensor = readSensor() + rightCalibrate;
   rightAmbient = readAmbient();
+  if (rightAmbient >= rightSensor) { 
+    digitalWrite(RIGHTGREENLED, HIGH); 
+    digitalWrite(RIGHTREDLED, LOW); } else {
+        digitalWrite(RIGHTGREENLED, LOW);
+        digitalWrite(RIGHTREDLED, HIGH);
+    }
   }
 
 void readLeftSensor() {
@@ -126,6 +150,12 @@ void readLeftSensor() {
   //because s1, s2, s3 are already set LOW we don't need to set again
   leftSensor = readSensor() + leftCalibrate;
   leftAmbient = readAmbient();
+  if (leftAmbient >= leftSensor) { 
+    digitalWrite(LEFTGREENLED, HIGH); 
+    digitalWrite(LEFTREDLED, LOW); } else {
+        digitalWrite(LEFTGREENLED, LOW);
+        digitalWrite(LEFTREDLED, HIGH);
+    }
 }
 
 int readSensor() {
