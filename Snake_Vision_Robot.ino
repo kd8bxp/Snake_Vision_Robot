@@ -21,9 +21,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses>
  */
 
-
-// **** THIS IS FOR TESTING THE SENSORS TO MAKE THE ROBOT SWITCH TO MASTER BRANCH ****
-
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
 
@@ -31,8 +28,27 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614(); //I think I can just use one device
 
 #define units 1 //1=Fahrenheit,  0=Celius
 
+//Functions:
 
-//Setup variables for themal sensors
+//rightForward(speed)
+//rightBackward(speed)
+//leftForward(speed)
+//leftBackward(speed)
+//stop()
+//readRightSensor() - set the mux to read the sensor connected to C0
+//readLeftSensor() - set the mux to read the sensor connected to C1
+//readSensor() - returns value of current readings
+
+
+//Setup variables for motors
+#define leftMotorPin1 3 //Left IA2   PWM PIN
+#define leftMotorPin2   5 //Left IB2 Direction PIN 
+#define rightMotorPin1  6 //Right IA1 PWM PIN
+#define rightMotorPin2  9 //Right IB1 Direction PIN
+int pwmR = 100;
+int pwmL = 100;
+
+//Setup variables for temperature sensors
 
 int rightSensor;
 int leftSensor;
@@ -54,8 +70,12 @@ int leftCalibrate;
 #define s2  2
 #define s3 13
 
+#define LED 12
+
 void setup()   {  
    Serial.begin(9600);
+   mlx.begin();
+   pinMode(LED, OUTPUT);
    pinMode(s0, OUTPUT);
    pinMode(s1, OUTPUT);
    pinMode(s2, OUTPUT);
@@ -64,54 +84,34 @@ void setup()   {
    digitalWrite(s1, LOW);
    digitalWrite(s2, LOW);
    digitalWrite(s3, LOW);
- mlx.begin();
- 
-delay(1000); //Need delay here for everything to catch up
-
-calibrateSensors();
+  pinMode(leftMotorPin1, OUTPUT); 
+  pinMode(leftMotorPin2, OUTPUT);  
+  pinMode(rightMotorPin1, OUTPUT);
+  pinMode(rightMotorPin2, OUTPUT);
+  stop();
+  delay(5000);
+  calibrateSensors(); 
+ delay(5000); 
+ digitalWrite(LED, HIGH); //When LED comes on ROBOT is Ready to move.
  
 }
 
 void loop()                     
 {
-  delay(1000);
 readRightSensor();
 readLeftSensor();
 
-
-//Compare Ambient tempature to reading tempature if changed do something
-Serial.print ("Right Ambient Temp: ");
-Serial.print(rightAmbient);
-Serial.print(" F Right Temp: ");
-Serial.print(rightSensor);
-Serial.println(" F");
-Serial.print("Left Ambient Temp: ");
-Serial.print(leftAmbient);
-Serial.print(" F Left Temp: ");
-Serial.print(leftSensor);
-Serial.println(" F");
-
-/*
-//Percentage added. *Not used
-int rightPercent = (rightAmbient - rightSensor) / 100;
-int leftPercent = (leftAmbient - leftSensor) / 100;
-
-Serial.print("Right Percent: ");
-Serial.println(rightPercent);
-Serial.print("Left Percent: ");
-Serial.println(leftPercent);
-
-//if (rightPercent != leftPercent) {
-*/
+//Compare Ambient temperature to reading temperature if changed do something
 
 if (rightSensor - rightAmbient >= 2 || leftSensor - leftAmbient >= 2) {
 
-    if (rightSensor > leftSensor) { Serial.println("Right High left Motor on"); }
-    if (rightSensor < leftSensor) { Serial.println("Left High right Motor on"); }
-    if (rightSensor == leftSensor) { Serial.println("Both Equal - Drive Forward"); }
-    //probably need to see if both ambients are the same, and stop robot
-}
- else {Serial.println("Stop Motors");}
+    if (rightSensor > leftSensor) { leftForward(pwmL); }
+    if (rightSensor < leftSensor) { rightForward(pwmR); }
+    if (rightSensor == leftSensor) { leftForward(pwmL); rightForward(pwmR); }
+} else { stop(); }
+
+//delay(50); //test code with small delay (may not be needed)
+
 }
 
 void readRightSensor() {
@@ -148,6 +148,33 @@ int readAmbient() {
   if (units) {temp = mlx.readAmbientTempF();} else {temp = mlx.readAmbientTempC();}
   return temp;
   
+}
+
+void rightForward(int speedOfRotate) {
+  digitalWrite(rightMotorPin2, LOW);
+  analogWrite(rightMotorPin1, speedOfRotate);
+}
+
+void rightBackward(int speedOfRotate) {
+  digitalWrite(rightMotorPin2, HIGH);
+  analogWrite(rightMotorPin1, speedOfRotate);
+}
+
+void leftForward(int speedOfRotate) {
+  digitalWrite(leftMotorPin2, LOW);
+  analogWrite(leftMotorPin1, speedOfRotate);
+}
+
+void leftBackward(int speedOfRotate) {
+  digitalWrite(leftMotorPin2, HIGH);
+  analogWrite(leftMotorPin1, speedOfRotate);
+}
+
+void stop() {
+  digitalWrite(leftMotorPin1, LOW);
+  digitalWrite(leftMotorPin2, LOW);
+  digitalWrite(rightMotorPin1, LOW);
+  digitalWrite(rightMotorPin2, LOW);
 }
 
 void calibrateSensors() {
