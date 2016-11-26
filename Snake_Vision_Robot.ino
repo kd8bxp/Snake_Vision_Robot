@@ -44,8 +44,8 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 #define leftMotorPin2   5 //Left IB2 Direction PIN 
 #define rightMotorPin1  6 //Right IA1 PWM PIN
 #define rightMotorPin2  9 //Right IB1 Direction PIN
-#define pwmR  100 //smallest PWM value that will cause motor to spin
-#define pwmL  100
+#define pwmR  140 //smallest PWM value that will cause motor to spin
+#define pwmL  125
 
 //Setup variables for temperature sensors
 
@@ -119,12 +119,12 @@ void loop()
 readRightSensor();
 readLeftSensor();
 
-aL = map(leftAmbient, -40, leftAmbient, 0.0, pwmL);
-sL = map(leftSensor, leftAmbient, leftSensor, pwmL, 0.0);
-aR = map(rightAmbient, -40, rightAmbient, 0.0, pwmR);
-sR = map(rightSensor, rightAmbient, rightSensor, pwmR, 0.0);
-if (leftAmbient >= leftSensor) {sL = 100;}
-if (rightAmbient >= rightSensor) {sR = 100;}
+aL = map(leftAmbient, -40, leftAmbient, 0.0, pwmR);
+sL = map(leftSensor, leftAmbient, leftSensor, pwmR, 0.0);
+aR = map(rightAmbient, -40, rightAmbient, 0.0, pwmL);
+sR = map(rightSensor, rightAmbient, rightSensor, pwmL, 0.0);
+if (leftAmbient >= leftSensor) {sL = pwmR;}
+if (rightAmbient >= rightSensor) {sR = pwmL;}
 rightForward(aL - sL);
 leftForward(aR - sR);
 
