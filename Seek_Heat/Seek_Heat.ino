@@ -25,6 +25,7 @@
 
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
+#include <NewPing.h>
 
 Adafruit_MLX90614 mlx = Adafruit_MLX90614(); 
 #define units 1 //1=Fahrenheit,  0=Celius
@@ -39,6 +40,16 @@ Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 //readRightSensor() - set the mux to read the sensor connected to C0
 //readLeftSensor() - set the mux to read the sensor connected to C1
 //readSensor() - returns value of current readings
+
+//Setup  variables for UltraSonic
+int pingSensorIn;
+int goRobotGo = 0; //Should the robot be moving or stopped
+#define distance 5 //Stop distance in Inches
+#define TRIGGER_PIN  11  // Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN     10  // Arduino pin tied to echo pin on the ultrasonic sensor.
+#define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
 
 
 //Setup variables for motors
@@ -118,9 +129,11 @@ void setup()   {
 
 void loop()                     
 {
+
 readRightSensor();
 readLeftSensor();
-
+readPing();
+if (goRobotGo) {
 aL = map(leftAmbient, -40, leftAmbient, 0.0, pwmR);
 sL = map(leftSensor, leftAmbient, leftSensor, pwmR, 0.0);
 aR = map(rightAmbient, -40, rightAmbient, 0.0, pwmL);
@@ -129,8 +142,16 @@ if (leftAmbient >= leftSensor) {sL = pwmR;}
 if (rightAmbient >= rightSensor) {sR = pwmL;}
 rightForward(aL - sL);
 leftForward(aR - sR);
-
+} else { stop(); }
 //delay(50); //test code with small delay (may not be needed)
+
+}
+
+void readPing() {
+ 
+   unsigned int uS = sonar.ping(); // Send ping, get ping time in microseconds (uS).
+   pingSensorIn = (uS / US_ROUNDTRIP_IN);
+   if (pingSensorIn >= distance) {goRobotGo = 1; } else {goRobotGo = 0;}
 
 }
 

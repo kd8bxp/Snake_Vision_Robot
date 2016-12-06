@@ -1,24 +1,13 @@
 # Snake Vision Robot
 
-The idea is that the robot is attracted to heat, and will move toward it.
-The setup is to have the MLX90614 sensors set at an angle from each other, 
-IF one sees more heat than the other, the robot will turn in that direction, and will attempt to move to the source.
-
-The MLX90614 sensors were provided by IC Station for this experiment.
-http://www.icstation.com/mlx90614esf-human-body-infrared-temperature-sensor-contact-temperature-module-p-9911.html
-
-The sensors are I2C, and a MUX will be used to switch between the two sensors
-
-## Parts and Build Instructions
-
-Build instructions:
 http://www.instructables.com/id/Snake-Vision-Robot-Using-Two-MLX90614-No-Contact-T/
 
-Parts List:
-Heat Seeking robot based on 2 IC Station MLX90614ESF Human Body Infrared Temperature Sensors
-Using a L9110 Motor Driver, and 2 CD74HC4067 MUX boards. 
-With an Arduino Nano for it's brains.
+## Not on Fritzing drawing
+
 Updated parts list: on Dec 6, 2016 added a HC-SR04 ultrasonic sensor.
+Echo Pin to Pin 10 on Nano
+Trigger Pin to Pin 11 on Nano
+VCC to 5v bus, GND to GND
 
 ## Contributing
 
