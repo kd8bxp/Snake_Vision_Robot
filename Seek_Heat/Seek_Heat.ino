@@ -21,6 +21,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses>
  */
 
+// Seek Heat.
+
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
 
